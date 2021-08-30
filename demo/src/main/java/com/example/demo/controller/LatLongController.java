@@ -17,13 +17,14 @@ import java.io.InterruptedIOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
 @RequestMapping("/maps")
 public class LatLongController {
     @GetMapping("/get-points")
-    public List<Coordinate> getDirections(@RequestParam("origin") String source, @RequestParam("destination") String destination) {
+    public HashMap<String, List<String>> getDirections(@RequestParam("origin") String source, @RequestParam("destination") String destination) {
         // Set the interval distance in meters
         int INTERVAL_DISTANCE=50;
 
@@ -82,12 +83,20 @@ public class LatLongController {
             points.add(destination_point);
             System.out.println("Final Length:" + points.size());
 
-            List<Coordinate> output = Points.getNewPoints(points, 50, origin_point, destination_point);
-            System.out.println("Output Size:" +output.size());
-            for (Coordinate o : output) {
+            List<Coordinate> newPoints = Points.getNewPoints(points, INTERVAL_DISTANCE, origin_point, destination_point);
+            System.out.println("Output Size:" +newPoints.size());
+            for (Coordinate o : newPoints) {
                 System.out.println(o + ",#0000FF,marker,Sample");
             }
 
+            List<String> p = new ArrayList<>();
+            HashMap<String, List<String>> output = new HashMap<>();
+            for (Coordinate o : newPoints) {
+                p.add(o.toString());
+                //System.out.println(o + ",#0000FF,marker,Sample");
+            }
+            System.out.println(p.size());
+            output.put("new_points", p);
             return output;
 
         } catch (InterruptedIOException e) {
