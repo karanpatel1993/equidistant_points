@@ -4,18 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Points {
-    public static List<LatLng> getNewPoints(List<LatLng> points, double interval){
-        List <LatLng> result = new ArrayList<>();
-        LatLng origin = new LatLng(12.93175,77.62872);
+    public static List<Coordinate> getNewPoints(List<Coordinate> points, double interval, Coordinate origin, Coordinate destination){
+        List <Coordinate> result = new ArrayList<>();
+        // LatLng origin = new LatLng(12.93175,77.62872);
         result.add(origin);
 
-        LatLng start = points.get(0);
-        LatLng prevPoint = points.get(0);
+        Coordinate prevPoint = points.get(0);
         double currentIntervalDistance = 0;
         // Loop through the points
         for(int i = 1; i < points.size(); i++){
             System.out.println("Loop:"+ i);
-            LatLng currentPoint = points.get(i);
+            Coordinate currentPoint = points.get(i);
             System.out.println("Prev Point:"+ prevPoint);
             System.out.println("Current Point:"+ currentPoint);
             double adjacentPointDistance = calculate_distance(prevPoint, currentPoint);
@@ -27,11 +26,11 @@ public class Points {
                 System.out.println("OffestDistance:" + offsetDistance);
                 double bearing = calculate_bearing(prevPoint, currentPoint);
                 System.out.println("Bearing:" + Math.toDegrees(bearing));
-                LatLng newPoint = new_coordinates(prevPoint, bearing, offsetDistance);
+                Coordinate newPoint = new_coordinates(prevPoint, bearing, offsetDistance);
                 System.out.println("newPoint:" + newPoint);
                 result.add(newPoint);
                 currentIntervalDistance = 0;
-                start = prevPoint = newPoint;
+                prevPoint = newPoint;
             }
             else{
                 System.out.println("Else");
@@ -39,11 +38,12 @@ public class Points {
                 prevPoint = currentPoint;
             }
         }
+        result.add(destination);
         return result;
     }
 
-    public static double calculate_distance(LatLng src, LatLng des) {
-        final int R = 6371; // Radius of the earth
+    public static double calculate_distance(Coordinate src, Coordinate des) {
+        final int R = 6378; // Radius of the earth
         double src_lat = Math.toRadians(src.getLatitude());
         double src_lon = Math.toRadians(src.getLongitude());
         double des_lat = Math.toRadians(des.getLatitude());
@@ -57,19 +57,19 @@ public class Points {
         return R * c * 1000;
     }
 
-    public static double calculate_bearing(LatLng src, LatLng dst){
+    public static double calculate_bearing(Coordinate src, Coordinate dst){
         double srcLat = Math.toRadians(src.getLatitude());
         double dstLat = Math.toRadians(dst.getLatitude());
         double srcLon = Math.toRadians(src.getLongitude());
         double dstLon = Math.toRadians(dst.getLongitude());
-        double dLng = Math.toRadians(dstLon - srcLon);
+        double dLng = dstLon - srcLon;
 
         return Math.atan2(Math.sin(dLng) * Math.cos(dstLat),
                 Math.cos(srcLat) * Math.sin(dstLat) -
                         Math.sin(srcLat) * Math.cos(dstLat) * Math.cos(dLng));
     }
 
-    public static LatLng new_coordinates(LatLng src, double distance, double bearing){
+    public static Coordinate new_coordinates(Coordinate src, double bearing, double distance){
         System.out.println("New Coordinates Input Parameters");
         System.out.println("Input:" + src + ',' + distance + ',' + bearing);
         final double R = 6378100; // Radius of the earth
@@ -82,6 +82,7 @@ public class Points {
         System.out.println("Math.cos(srcLat):" + Math.cos(srcLat));
         System.out.println("Division:" + distance/R);
         System.out.println("Math.sin(distance/R):" + Math.sin(distance/R));
+        System.out.println("Bearing:" + bearing);
         System.out.println("Math.cos(bearing):" + Math.cos(bearing));
         double dstLat = Math.asin(Math.sin(srcLat) * Math.cos(distance/R) +
                 Math.cos(srcLat) * Math.sin(distance/R) * Math.cos(bearing));
@@ -96,7 +97,7 @@ public class Points {
         System.out.println("Degrees Des Lat:" + dstLat);
         System.out.println("Degrees Des Long:" + dstLon);
 
-        return new LatLng(dstLat, dstLon);
+        return new Coordinate(dstLat, dstLon);
 
     }
 }

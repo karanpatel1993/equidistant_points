@@ -1,6 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.helper.LatLng;
+import com.example.demo.helper.Coordinate;
 import com.example.demo.helper.Points;
 import com.example.demo.helper.PolyLine;
 import org.json.JSONArray;
@@ -22,11 +22,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/maps")
 public class LatLongController {
-    @GetMapping("/get-direction")
-    public void getDirections(@RequestParam("origin") String source, @RequestParam("destination") String destination) {
+    @GetMapping("/get-points")
+    public List<Coordinate> getDirections(@RequestParam("origin") String source, @RequestParam("destination") String destination) {
+        // Set the interval distance in meters
+        int INTERVAL_DISTANCE=50;
+
+        // Fetch data from google directions api
         try{
             URL yahoo = new URL("https://maps.googleapis.com/maps/api/directions/json?" +
-                   "origin=" + source + "&destination=" + destination +
+                   "origin=" + source + "&destination=" + destination + "&mode=driving" +
                    "&key=AIzaSyAEQvKUVouPDENLkQlCF6AAap1Ze-6zMos");
 
             URLConnection yc = yahoo.openConnection();
@@ -40,6 +44,12 @@ public class LatLongController {
             }
             in.close();
             System.out.println(data);
+
+            // Get origin and destination points
+            String [] origin_coords = source.split(",");
+            Coordinate origin_point = new Coordinate(Double.parseDouble(origin_coords[0]), Double.parseDouble(origin_coords[1]));
+            String [] dest_coords = source.split(",");
+            Coordinate destination_point = new Coordinate(Double.parseDouble(dest_coords[0]), Double.parseDouble(dest_coords[1]));
 
             // Convert String to json object
             JSONObject data_object  = new JSONObject(data);
@@ -58,39 +68,33 @@ public class LatLongController {
             }
 
             // Decode the polylines and add the coordinates to a list
-            List<LatLng> points = new ArrayList<>();
+            List<Coordinate> points = new ArrayList<>();
             // Add origin point to the list
-            LatLng origin = new LatLng(12.93175,77.62872);
-            points.add(origin);
+            points.add(origin_point);
 
             // Add the coordinates from each decoded polyline
             for (String polyLine : polyLines) {
-                List<LatLng> segment_points = PolyLine.decode(polyLine);
-                // System.out.println("Segment Length:" + segment_points.size());
+                List<Coordinate> segment_points = PolyLine.decode(polyLine);
                 points.addAll(segment_points);
             }
-//            points.addAll(PolyLine.decode(polyLines.get(0)));
-//            for (LatLng point : points) {
-//                System.out.println(point);
-//            }
 
             // Add destination point to the list
-            LatLng destination_point = new LatLng(12.92662,77.63696);
             points.add(destination_point);
             System.out.println("Final Length:" + points.size());
 
-            List<LatLng> output = Points.getNewPoints(points, 50);
+            List<Coordinate> output = Points.getNewPoints(points, 50, origin_point, destination_point);
             System.out.println("Output Size:" +output.size());
-            for (LatLng o : output) {
+            for (Coordinate o : output) {
                 System.out.println(o + ",#0000FF,marker,Sample");
             }
 
+            return output;
 
         } catch (InterruptedIOException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //return null
+        return null;
     }
 }

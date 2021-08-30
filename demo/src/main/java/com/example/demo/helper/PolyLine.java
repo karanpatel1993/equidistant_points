@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PolyLine {
-    public static List<LatLng> decode(String encoded) {
+    public static List<Coordinate> decode(String encoded) {
 
-        List<LatLng> poly = new ArrayList<>();
+        List<Coordinate> poly = new ArrayList<>();
         int index = 0, len = encoded.length();
         int lat = 0, lng = 0;
 
@@ -30,7 +30,7 @@ public class PolyLine {
             int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
             lng += dlng;
 
-            LatLng p = new LatLng((((double) lat / 1E5)),
+            Coordinate p = new Coordinate((((double) lat / 1E5)),
                     (((double) lng / 1E5)));
             poly.add(p);
         }
