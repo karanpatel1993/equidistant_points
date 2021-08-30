@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 
 @RestController
-@RequestMapping("/maps")
+@RequestMapping("/latlong")
 public class LatLongController {
-    @GetMapping("/get_points")
+    @GetMapping("/get_interval_points")
     public HashMap<String, String> getDirections(@RequestParam("origin") String source, @RequestParam("destination") String destination) {
         // Set the interval distance in meters
         int INTERVAL_DISTANCE=50;
