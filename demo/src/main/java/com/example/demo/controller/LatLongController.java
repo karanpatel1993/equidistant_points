@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/maps")
 public class LatLongController {
-    @GetMapping("/get-points")
+    @GetMapping("/get_points")
     public HashMap<String, String> getDirections(@RequestParam("origin") String source, @RequestParam("destination") String destination) {
         // Set the interval distance in meters
         int INTERVAL_DISTANCE=50;
