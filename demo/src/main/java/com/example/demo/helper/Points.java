@@ -4,6 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Points {
+    /**
+     * This method is used to calculate the new Points placed at a distance of the interval.
+     * @param points This is the list of points from Directions API.
+     * @param interval  This is the interval at which the new points need to placed.
+     * @param origin The start point coordinate.
+     * @param destination The end point coordinate.
+     * @return List<Coordinate> The list of new points.
+     */
     public static List<Coordinate> getNewPoints(List<Coordinate> points, double interval, Coordinate origin, Coordinate destination){
         List <Coordinate> result = new ArrayList<>();
         // LatLng origin = new LatLng(12.93175,77.62872);
@@ -13,27 +21,17 @@ public class Points {
         double currentIntervalDistance = 0;
         // Loop through the points
         for(int i = 1; i < points.size(); i++){
-            System.out.println("Loop:"+ i);
             Coordinate currentPoint = points.get(i);
-            System.out.println("Prev Point:"+ prevPoint);
-            System.out.println("Current Point:"+ currentPoint);
             double adjacentPointDistance = calculate_distance(prevPoint, currentPoint);
-            System.out.println("Adjacent Distance:"+ adjacentPointDistance);
-            System.out.println("Current Interval Distance:"+ currentIntervalDistance);
             if (currentIntervalDistance + adjacentPointDistance > interval){
-                System.out.println("If:");
                 double offsetDistance = interval - currentIntervalDistance;
-                System.out.println("OffestDistance:" + offsetDistance);
                 double bearing = calculate_bearing(prevPoint, currentPoint);
-                System.out.println("Bearing:" + Math.toDegrees(bearing));
                 Coordinate newPoint = new_coordinates(prevPoint, bearing, offsetDistance);
-                System.out.println("newPoint:" + newPoint);
                 result.add(newPoint);
                 currentIntervalDistance = 0;
                 prevPoint = newPoint;
             }
             else{
-                System.out.println("Else");
                 currentIntervalDistance += adjacentPointDistance;
                 prevPoint = currentPoint;
             }
@@ -42,6 +40,12 @@ public class Points {
         return result;
     }
 
+    /**
+     * This method is used to calculate the distance between two coordinate points.
+     * @param src The start point coordinate.
+     * @param des  The end point coordinate.
+     * @return double The distance between the points in meters.
+     */
     public static double calculate_distance(Coordinate src, Coordinate des) {
         final int R = 6378; // Radius of the earth
         double src_lat = Math.toRadians(src.getLatitude());
@@ -57,6 +61,12 @@ public class Points {
         return R * c * 1000;
     }
 
+    /**
+     * This method is used to calculate the bearing between the points.
+     * @param src The start point coordinate.
+     * @param dst  The end point coordinate.
+     * @return double The bearing between the points in radians
+     */
     public static double calculate_bearing(Coordinate src, Coordinate dst){
         double srcLat = Math.toRadians(src.getLatitude());
         double dstLat = Math.toRadians(dst.getLatitude());
@@ -69,33 +79,25 @@ public class Points {
                         Math.sin(srcLat) * Math.cos(dstLat) * Math.cos(dLng));
     }
 
+    /**
+     * This method is used to calculate the new coordinate point given the source and the distance and the bearing.
+     * @param src The start point coordinate.
+     * @param bearing The bearing/angle in radians
+     * @param distance The distance between the source and the new point.
+     * @return Coordinate The new coordinate point.
+     */
     public static Coordinate new_coordinates(Coordinate src, double bearing, double distance){
-        System.out.println("New Coordinates Input Parameters");
-        System.out.println("Input:" + src + ',' + distance + ',' + bearing);
         final double R = 6378100; // Radius of the earth
         double srcLat = Math.toRadians(src.getLatitude());
         double srcLon = Math.toRadians(src.getLongitude());
-        System.out.println("src Lat:" + srcLat);
-        System.out.println("src Long:" + srcLon);
-        System.out.println("Math.sin(srcLat):" + Math.sin(srcLat));
-        System.out.println("Math.cos(distance/R):" + Math.cos(distance/R));
-        System.out.println("Math.cos(srcLat):" + Math.cos(srcLat));
-        System.out.println("Division:" + distance/R);
-        System.out.println("Math.sin(distance/R):" + Math.sin(distance/R));
-        System.out.println("Bearing:" + bearing);
-        System.out.println("Math.cos(bearing):" + Math.cos(bearing));
         double dstLat = Math.asin(Math.sin(srcLat) * Math.cos(distance/R) +
                 Math.cos(srcLat) * Math.sin(distance/R) * Math.cos(bearing));
 
         double dstLon = srcLon + Math.atan2(Math.sin(bearing) * Math.sin(distance / R) * Math.cos(srcLat),
                 Math.cos(distance/R) - Math.sin(srcLat) * Math.sin(dstLat));
-        System.out.println("Radians Des Lat:" + dstLat);
-        System.out.println("Radians Des Long:" + dstLon);
 
         dstLat = Math.toDegrees(dstLat);
         dstLon = Math.toDegrees(dstLon);
-        System.out.println("Degrees Des Lat:" + dstLat);
-        System.out.println("Degrees Des Long:" + dstLon);
 
         return new Coordinate(dstLat, dstLon);
 

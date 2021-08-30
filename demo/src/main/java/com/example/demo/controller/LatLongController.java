@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.InterruptedIOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -24,7 +23,7 @@ import java.util.List;
 @RequestMapping("/maps")
 public class LatLongController {
     @GetMapping("/get-points")
-    public HashMap<String, List<String>> getDirections(@RequestParam("origin") String source, @RequestParam("destination") String destination) {
+    public HashMap<String, String> getDirections(@RequestParam("origin") String source, @RequestParam("destination") String destination) {
         // Set the interval distance in meters
         int INTERVAL_DISTANCE=50;
 
@@ -37,23 +36,21 @@ public class LatLongController {
             URLConnection yc = yahoo.openConnection();
             BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
             String inputLine;
-            String data = "";
+            StringBuilder data = new StringBuilder();
 
             while ((inputLine = in.readLine()) != null){
-                data += inputLine;
-                // System.out.println(inputLine);
+                data.append(inputLine);
             }
             in.close();
-            System.out.println(data);
 
             // Get origin and destination points
             String [] origin_coords = source.split(",");
             Coordinate origin_point = new Coordinate(Double.parseDouble(origin_coords[0]), Double.parseDouble(origin_coords[1]));
-            String [] dest_coords = source.split(",");
+            String [] dest_coords = destination.split(",");
             Coordinate destination_point = new Coordinate(Double.parseDouble(dest_coords[0]), Double.parseDouble(dest_coords[1]));
 
             // Convert String to json object
-            JSONObject data_object  = new JSONObject(data);
+            JSONObject data_object  = new JSONObject(data.toString());
 
             // Extract the list of PolyLines
             JSONArray routes = data_object.getJSONArray("routes");
@@ -64,7 +61,6 @@ public class LatLongController {
             // Add all the polylines to the list
             for(int step = 0; step < steps.length(); step ++){
                 String p = steps.getJSONObject(step).getJSONObject("polyline").getString("points");
-                System.out.println(p);
                 polyLines.add(p);
             }
 
@@ -81,26 +77,21 @@ public class LatLongController {
 
             // Add destination point to the list
             points.add(destination_point);
-            System.out.println("Final Length:" + points.size());
 
             List<Coordinate> newPoints = Points.getNewPoints(points, INTERVAL_DISTANCE, origin_point, destination_point);
-            System.out.println("Output Size:" +newPoints.size());
-            for (Coordinate o : newPoints) {
-                System.out.println(o + ",#0000FF,marker,Sample");
-            }
 
-            List<String> p = new ArrayList<>();
-            HashMap<String, List<String>> output = new HashMap<>();
+            List<String> pointsList = new ArrayList<>();
+            HashMap<String, String> output = new HashMap<>();
+            System.out.println("Output to plot the points");
             for (Coordinate o : newPoints) {
-                p.add(o.toString());
-                //System.out.println(o + ",#0000FF,marker,Sample");
+                pointsList.add(o.toString());
+                System.out.println(o + ",#0000FF,marker,'Dummy'");
             }
-            System.out.println(p.size());
-            output.put("new_points", p);
+            output.put("origin", origin_point.toString());
+            output.put("destination", destination_point.toString());
+            output.put("new_points", pointsList.toString());
             return output;
 
-        } catch (InterruptedIOException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
